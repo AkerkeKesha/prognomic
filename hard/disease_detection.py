@@ -77,21 +77,16 @@ def _is_valid(patient) -> bool:
     return True
 
 
-def is_high_risk(fever: float, cough: bool, fatigue: bool, diff: bool, blood: float, x_ray: str) -> bool:
-    markers = [0, 0, 0, 0, 0, 0]
-    if fever > 38.0:
-        markers[0] = 1
-    if cough:
-        markers[1] = 1
-    if fatigue:
-        markers[2] = 1
-    if diff:
-        markers[3] = 1
-    if blood > 10.0:
-        markers[4] = 1
-    if x_ray == "abnormal":
-        markers[5] = 1
-    return sum(markers) >= 3
+def is_high_risk(patient: Dict) -> bool:
+    risk_factors = [
+        patient["fever"] > 38.0,
+        patient["cough"],
+        patient["fatigue"],
+        patient["difficulty_breathing"],
+        patient["blood_test_result"] > 10.0,
+        patient["x_ray_result"] == "abnormal",
+    ]
+    return sum(risk_factors) >= 3
 
 
 def analyze_disease_data(patients: List[Dict]) -> Dict:
@@ -129,9 +124,7 @@ def analyze_disease_data(patients: List[Dict]) -> Dict:
         if patient["difficulty_breathing"]:
             symptoms.append("difficulty_breathing")
 
-        if is_high_risk(fever=patient["fever"], cough=patient["cough"], fatigue=patient["fatigue"],
-                        diff=patient["difficulty_breathing"], blood=patient["blood_test_result"],
-                        x_ray=patient["x_ray_result"]):
+        if is_high_risk(patient):
             report["high_risk_patients"].append(patient["patient_id"])
             high_risks += 1
 
