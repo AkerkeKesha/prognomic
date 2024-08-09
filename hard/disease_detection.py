@@ -106,23 +106,18 @@ def analyze_disease_data(patients: List[Dict]) -> Dict:
     patients = [patient for patient in patients if _is_valid(patient)]
     if not patients:
         return report
-    total_patients = 0
-    sum_age = 0
-    blood_test = []
-    x_rays = []
-    symptoms = []
-    high_risks = 0
+    total_patients, sum_age, high_risks = 0, 0, 0
+    blood_test, x_rays, symptoms = [], [], []
+
     for patient in patients:
         total_patients += 1
         sum_age += patient["age"]
         blood_test.append(patient["blood_test_result"])
         x_rays.append(patient["x_ray_result"])
-        if patient["cough"]:
-            symptoms.append("cough")
-        if patient["fatigue"]:
-            symptoms.append("fatigue")
-        if patient["difficulty_breathing"]:
-            symptoms.append("difficulty_breathing")
+
+        for symptom in ["cough", "fatigue", "difficulty_breathing"]:
+            if patient[symptom]:
+                symptoms.append(symptom)
 
         if is_high_risk(patient):
             report["high_risk_patients"].append(patient["patient_id"])
