@@ -54,8 +54,7 @@ from collections import Counter
 
 
 def _is_valid(patient) -> bool:
-    must_keys = set([
-        "patient_id",
+    must_keys = {"patient_id",
         "age",
         "fever",
         "cough",
@@ -63,8 +62,8 @@ def _is_valid(patient) -> bool:
         "difficulty_breathing",
         "blood_test_result",
         "x_ray_result"
-    ])
-    if set(patient.keys()).difference(must_keys):
+    }
+    if set(patient.keys()) != must_keys:
         return False
     if patient["age"] < 0:
         return False
@@ -104,6 +103,7 @@ def analyze_disease_data(patients: List[Dict]) -> Dict:
         }
 
     }
+    patients = [patient for patient in patients if _is_valid(patient)]
     if not patients:
         return report
     total_patients = 0
@@ -168,6 +168,18 @@ if __name__ == '__main__':
             "blood_test_result": 11.2,
             "x_ray_result": "normal"
         },
+        {},
+        {
+            "patient_id": "P002",
+            "age": -40,
+            "fever": 30.5,
+            "cough": True,
+            "fatigue": False,
+            "difficulty_breathing": False,
+            "blood_test_result": 11.2,
+            "x_ray_result": "normal"
+        },
+
     ]
 
     result = analyze_disease_data(sample_input)
