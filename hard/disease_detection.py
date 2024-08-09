@@ -1,0 +1,181 @@
+'''
+input:
+
+sample_input = [
+    {
+        "patient_id": "P001",
+        "age": 45,
+        "fever": 38.5,
+        "cough": True,
+        "fatigue": True,
+        "difficulty_breathing": False,
+        "blood_test_result": 11.2,
+        "x_ray_result": "abnormal"
+    },
+    # Add more sample patients here
+]
+
+output:
+{
+    "high_risk_patients": [str],  # list of patient_ids
+    "total_patients": int,
+    "high_risk_percentage": float,
+    "average_age": float,
+    "most_common_symptom": str,
+    "blood_test_summary": {
+        "min": float,
+        "max": float,
+        "average": float
+    },
+    "x_ray_summary": {
+        "normal": int,
+        "abnormal": int,
+        "inconclusive": int
+    }
+}
+
+Notes:
+- most_common_symptom in [fatigue, cough, difficulty_breathing]
+- round decimal to 2
+- empty patients list, i.e. count(patients) = 0
+- If a tie for the most common symptom, return any of the tied symptoms
+
+Edge Cases:
+- all keys present in entry
+- keys match their described types, e.g. patient_id: str
+- age should be between 0 and 120 (inclusive)
+- abnormal fever: fever < 0 or fever > 60
+- blood_test < 0
+
+'''
+from typing import Dict, List
+from pprint import pprint
+from collections import Counter
+
+
+def _is_valid(patient) -> bool:
+    must_keys = set([
+        "patient_id",
+        "age",
+        "fever",
+        "cough",
+        "fatigue",
+        "difficulty_breathing",
+        "blood_test_result",
+        "x_ray_result"
+    ])
+    if set(patient.keys()).difference(must_keys):
+        return False
+    if patient["age"] < 0:
+        return False
+    if patient["age"] > 120:
+        return False
+    if patient["fever"] < 0:
+        return False
+    if patient["blood_test_result"] < 0:
+        return False
+    return True
+
+
+def is_high_risk(fever: float, cough: bool, fatigue: bool, diff: bool, blood: float, x_ray: str) -> bool:
+    markers = [0, 0, 0, 0, 0, 0]
+    if fever > 38.0:
+        markers[0] = 1
+    if cough:
+        markers[1] = 1
+    if fatigue:
+        markers[2] = 1
+    if diff:
+        markers[3] = 1
+    if blood > 10.0:
+        markers[4] = 1
+    if x_ray == "abnormal":
+        markers[5] = 1
+    return sum(markers) >= 3
+
+
+def analyze_disease_data(patients: List[Dict]) -> Dict:
+    report = {
+        "high_risk_patients": [],
+        "total_patients": 0,
+        "high_risk_percentage": 0.0,
+        "average_age": 0.0,
+        "most_common_symptom": "",
+        "blood_test_summary": {},
+        "x_ray_summary": {
+            "normal": 0,
+            "abnormal": 0,
+            "inconclusive": 0
+        }
+
+    }
+    if not patients:
+        return report
+    total_patients = 0
+    sum_age = 0
+    blood_test = []
+    x_rays = []
+    symptoms = []
+    high_risks = 0
+    for patient in patients:
+        total_patients += 1
+        sum_age += patient["age"]
+        blood_test.append(patient["blood_test_result"])
+        x_rays.append(patient["x_ray_result"])
+        if patient["cough"]:
+            symptoms.append("cough")
+        if patient["fatigue"]:
+            symptoms.append("fatigue")
+        if patient["difficulty_breathing"]:
+            symptoms.append("difficulty_breathing")
+
+        if is_high_risk(fever=patient["fever"], cough=patient["cough"], fatigue=patient["fatigue"],
+                        diff=patient["difficulty_breathing"], blood=patient["blood_test_result"],
+                        x_ray=patient["x_ray_result"]):
+            report["high_risk_patients"].append(patient["patient_id"])
+            high_risks += 1
+
+    report["high_risk_percentage"] = high_risks / total_patients
+    report["total_patients"] = total_patients
+    report["average_age"] = sum_age / total_patients
+
+    report["blood_test_summary"] = {
+        "min": min(blood_test),
+        "max": max(blood_test),
+        "average": sum(blood_test) / len(blood_test)
+    }
+    x_ray_counts = Counter(x_rays)
+    report["x_ray_summary"] = {
+        key: count for key, count in x_ray_counts.items()
+    }
+    symptom, _ = Counter(symptoms).most_common(1)[0]  # [(key, val)]
+    report["most_common_symptom"] = symptom
+    return report
+
+
+if __name__ == '__main__':
+    sample_input = [
+        {
+            "patient_id": "P001",
+            "age": 45,
+            "fever": 38.5,
+            "cough": True,
+            "fatigue": True,
+            "difficulty_breathing": False,
+            "blood_test_result": 11.2,
+            "x_ray_result": "abnormal"
+        },
+        {
+            "patient_id": "P002",
+            "age": 40,
+            "fever": 30.5,
+            "cough": True,
+            "fatigue": False,
+            "difficulty_breathing": False,
+            "blood_test_result": 11.2,
+            "x_ray_result": "normal"
+        },
+    ]
+
+    result = analyze_disease_data(sample_input)
+    pprint(result)
